@@ -21,8 +21,8 @@
         </header>
 
         <main class="main-layout">
-            <!-- Sidebar: Parameters, Visuals, and Stats -->
-            <section class="sidebar-panel" aria-label="Controls and Statistics">
+            <!-- Sidebar: Parameters, Visuals, and Stats (Setup View) -->
+            <section class="sidebar-panel setup-view" aria-label="Controls and Statistics">
                 <div class="glass-card panel-section">
                     <h2 class="section-title">Distribution Parameters</h2>
                     <div class="preset-group">
@@ -115,10 +115,36 @@
                         Reset Stats
                     </button>
                 </div>
+
+                <div class="mobile-only-start">
+                    <button id="setupStartBtn" class="btn btn-primary btn-large" style="width: 100%; margin-top: 12px; padding: 14px; border-radius: 10px; font-weight: 700;">
+                        Start Duel
+                    </button>
+                </div>
             </section>
 
             <!-- Game View Area -->
-            <section class="game-panel" aria-label="Game Visualizer">
+            <section class="game-panel game-view" aria-label="Game Visualizer">
+                <div class="mobile-hud">
+                    <button id="backToSetupBtn" class="btn btn-icon-back" aria-label="Back to Settings">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+                        </svg>
+                    </button>
+                    <div class="hud-stat">
+                        <span class="hud-label">HUMAN</span>
+                        <span id="hudHumanHits" class="hud-val cyan-text">0/10</span>
+                    </div>
+                    <div class="hud-stat">
+                        <span class="hud-label">AI</span>
+                        <span id="hudAiHits" class="hud-val orange-text">0/10</span>
+                    </div>
+                    <div class="hud-stat">
+                        <span class="hud-label">TIME</span>
+                        <span id="hudTimeVal" class="hud-val">0.00s</span>
+                    </div>
+                </div>
+
                 <div class="canvas-wrapper glass-card">
                     <canvas id="gameCanvas"></canvas>
                     
@@ -126,7 +152,7 @@
                         <div class="prompt-content">
                             <div class="prompt-icon">DUEL</div>
                             <h3>Weibull Rhythm Duel</h3>
-                            <p>Race the AI to 10 successful hits! Press SPACE to predict on the top track (Human). The chosen AI strategy will predict on the bottom track.</p>
+                            <p>Race the AI to 10 successful hits! Tapping the screen (or Spacebar on desktop) predicts on the top track. The AI will predict on the bottom track.</p>
                             <button id="promptPlayBtn" class="btn btn-primary">Start Duel</button>
                         </div>
                     </div>
@@ -139,7 +165,7 @@
                     </div>
                     <div class="legend-item">
                         <span class="legend-dot pred-dot"></span>
-                        <span class="legend-text">Your Prediction (Spacebar)</span>
+                        <span class="legend-text">Your Prediction (Tap / Space)</span>
                     </div>
                     <div class="legend-item">
                         <span class="legend-dot green-dot"></span>
@@ -150,7 +176,7 @@
                         <span class="legend-text">Miss (Error &ge; 0.35s)</span>
                     </div>
                 </div>
-            </main>
+            </section>
         </main>
     </div>
     

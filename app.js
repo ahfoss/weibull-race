@@ -72,6 +72,7 @@ const state = {
 
     // Game Control
     isPlaying: false,
+    currentView: 'setup', // 'setup' or 'game'
     nextSpawnTime: 0,
     lastTime: 0,
     gameTime: 0,
@@ -123,6 +124,15 @@ const state = {
 };
 
 // --- DOM ELEMENTS ---
+
+const setupView = document.querySelector('.setup-view');
+const gameView = document.querySelector('.game-view');
+const setupStartBtn = document.getElementById('setupStartBtn');
+const backToSetupBtn = document.getElementById('backToSetupBtn');
+
+const hudHumanHits = document.getElementById('hudHumanHits');
+const hudAiHits = document.getElementById('hudAiHits');
+const hudTimeVal = document.getElementById('hudTimeVal');
 
 const presetClustered = document.getElementById('presetClustered');
 const presetMemoryless = document.getElementById('presetMemoryless');
@@ -671,12 +681,18 @@ function processAIMiss(pred) {
 }
 
 function updateStatsUI() {
-    timeVal.textContent = (state.gameTime / 1000).toFixed(2) + 's';
+    const timeString = (state.gameTime / 1000).toFixed(2) + 's';
+    timeVal.textContent = timeString;
     humanSuccessVal.textContent = `${state.humanHits}/10`;
     aiSuccessVal.textContent = `${state.aiHits}/10`;
     humanStreakVal.textContent = state.humanStreak;
     aiStreakVal.textContent = state.aiStreak;
     bestTimeVal.textContent = state.bestTime ? state.bestTime.toFixed(2) + 's' : '-';
+
+    // Mirror to mobile HUD
+    if (hudTimeVal) hudTimeVal.textContent = timeString;
+    if (hudHumanHits) hudHumanHits.textContent = `${state.humanHits}/10`;
+    if (hudAiHits) hudAiHits.textContent = `${state.aiHits}/10`;
 }
 
 function resetStats() {
@@ -1425,6 +1441,7 @@ function togglePlayState() {
 
     if (state.isPlaying) {
         state.lastTime = performance.now();
+        setView('game');
         
         // If restarting from a victory or starting new, clean all statistics and variables
         if (state.humanHits >= 10 || state.aiHits >= 10 || (state.lines.length === 0 && state.humanPredictions.length === 0 && state.aiPredictions.length === 0)) {
@@ -1604,9 +1621,48 @@ document.addEventListener('click', (e) => {
     }
 });
 
+// View switching logic for Single Page App (SPA) responsive views
+function setView(viewName) {
+    state.currentView = viewName;
+    if (window.innerWidth <= 768) {
+        if (viewName === 'setup') {
+            setupView.classList.remove('hidden');
+            gameView.classList.remove('active-view');
+        } else {
+            setupView.classList.add('hidden');
+            gameView.classList.add('active-view');
+        }
+    } else {
+        // Desktop: show both side-by-side
+        setupView.classList.remove('hidden');
+        gameView.classList.remove('active-view');
+    }
+}
+
+// Mobile setup start button click handler
+setupStartBtn.addEventListener('click', () => {
+    setView('game');
+    if (!state.isPlaying) {
+        togglePlayState();
+    }
+    setupStartBtn.blur();
+});
+
+// Mobile game HUD back button click handler
+backToSetupBtn.addEventListener('click', () => {
+    if (state.isPlaying) {
+        togglePlayState();
+    }
+    setView('setup');
+    backToSetupBtn.blur();
+});
+
 // Capture keydown in capturing phase to block focused elements from consuming Spacebar events
 window.addEventListener('keydown', handleSpaceInput, true);
-window.addEventListener('resize', handleResize);
+window.addEventListener('resize', () => {
+    handleResize();
+    setView(state.currentView);
+});
 
 // --- APP INITIALIZATION ---
 
@@ -1614,7 +1670,16 @@ function init() {
     handleResize();
     setPreset('clustered', 0.7, 1.6);
     setStrategy('random');
+    setView('setup');
     updateStatsUI();
+    
+    // Tap / Touch input for mobile playability on canvas
+    gameCanvas.addEventListener('pointerdown', (e) => {
+        e.preventDefault(); // Block double-tap to zoom or standard context menus
+        if (state.isPlaying) {
+            makeHumanPrediction(state.gameTime);
+        }
+    }, { passive: false });
     
     // Initial clear screen
     renderGame();

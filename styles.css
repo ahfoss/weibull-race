@@ -661,3 +661,137 @@ body {
 .text-center {
     text-align: center !important;
 }
+
+/* Mobile responsive view-switching layout */
+.mobile-only-start {
+    display: none;
+}
+
+.mobile-hud {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .main-layout {
+        display: block !important;
+        padding: 0 !important;
+    }
+    
+    .app-header {
+        padding-bottom: 12px;
+        margin-bottom: 12px;
+        flex-direction: row !important;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .header-tagline {
+        display: none; /* Hide tagline on mobile for space */
+    }
+
+    .setup-view {
+        display: flex !important;
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    .game-view {
+        display: none !important;
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    /* Toggle states for single page app views on mobile */
+    .setup-view.hidden {
+        display: none !important;
+    }
+    
+    .game-view.active-view {
+        display: flex !important;
+    }
+
+    .mobile-only-start {
+        display: block !important;
+    }
+    
+    .mobile-hud {
+        display: flex !important;
+        align-items: center;
+        gap: 12px;
+        background: rgba(8, 9, 12, 0.6);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        padding: 8px 12px;
+        border-radius: 12px;
+        width: 100%;
+        margin-bottom: 12px;
+    }
+    
+    .hud-stat {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex: 1;
+    }
+    
+    .hud-label {
+        font-size: 9px;
+        font-weight: 700;
+        color: var(--text-muted);
+        letter-spacing: 0.5px;
+        margin-bottom: 2px;
+    }
+    
+    .hud-val {
+        font-size: 14px;
+        font-weight: 700;
+        font-family: var(--font-mono);
+    }
+    
+    .btn-icon-back {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--text-main);
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        padding: 0;
+        transition: all 0.2s ease;
+        outline: none;
+    }
+    
+    .btn-icon-back:active {
+        background: rgba(255, 255, 255, 0.15);
+        transform: scale(0.9);
+    }
+
+    .canvas-wrapper {
+        height: 360px !important;
+        border-radius: 16px;
+        touch-action: none; /* Block double tap zooms and scrolling on canvas */
+    }
+
+    /* Hide desktop controls on mobile setup screen */
+    .setup-view .action-buttons {
+        display: none !important;
+    }
+    
+    /* Hide legend on mobile to save vertical height */
+    .game-legend {
+        display: none !important;
+    }
+    
+    /* Center victory prompts nicely on smaller screen dimensions */
+    .overlay-prompt {
+        padding: 16px;
+    }
+    
+    .prompt-content {
+        max-width: 100%;
+    }
+}
