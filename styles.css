@@ -367,6 +367,7 @@ body {
     height: 100%;
     display: block;
     background: radial-gradient(circle at center, #11131c 0%, #08090c 100%);
+    touch-action: none; /* Prevent scroll gestures from canceling tap inputs */
 }
 
 /* Overlay prompt style */

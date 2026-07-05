@@ -171,15 +171,27 @@ const gameCtx = gameCanvas.getContext('2d');
 
 function initAudio() {
     if (!state.audioCtx) {
-        state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        try {
+            state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) {
+            console.warn("Web Audio API is not supported on this device/browser:", e);
+            state.audioCtx = null;
+        }
     }
 }
 
 function playSound(type) {
     if (state.isMuted) return;
     initAudio();
-    if (state.audioCtx.state === 'suspended') {
-        state.audioCtx.resume();
+    if (!state.audioCtx) return;
+
+    try {
+        if (state.audioCtx.state === 'suspended') {
+            state.audioCtx.resume();
+        }
+    } catch (e) {
+        console.warn("AudioContext resume failed:", e);
+        return;
     }
 
     const ctx = state.audioCtx;
@@ -758,21 +770,23 @@ function triggerDuelEnd(winner) {
         if (!state.isMuted) {
             initAudio();
             const ctx = state.audioCtx;
-            const now = ctx.currentTime;
-            const failureNotes = [293.66, 277.18, 261.63, 220.00]; // D4, C#4, C4, A3
-            failureNotes.forEach((freq, idx) => {
-                const osc = ctx.createOscillator();
-                const gainNode = ctx.createGain();
-                osc.connect(gainNode);
-                gainNode.connect(ctx.destination);
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(freq, now + idx * 0.15);
-                gainNode.gain.setValueAtTime(0, now + idx * 0.15);
-                gainNode.gain.linearRampToValueAtTime(0.05, now + idx * 0.15 + 0.02);
-                gainNode.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.15 + 0.4);
-                osc.start(now + idx * 0.15);
-                osc.stop(now + idx * 0.15 + 0.5);
-            });
+            if (ctx) {
+                const now = ctx.currentTime;
+                const failureNotes = [293.66, 277.18, 261.63, 220.00]; // D4, C#4, C4, A3
+                failureNotes.forEach((freq, idx) => {
+                    const osc = ctx.createOscillator();
+                    const gainNode = ctx.createGain();
+                    osc.connect(gainNode);
+                    gainNode.connect(ctx.destination);
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.15);
+                    gainNode.gain.setValueAtTime(0, now + idx * 0.15);
+                    gainNode.gain.linearRampToValueAtTime(0.05, now + idx * 0.15 + 0.02);
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.15 + 0.4);
+                    osc.start(now + idx * 0.15);
+                    osc.stop(now + idx * 0.15 + 0.5);
+                });
+            }
         }
     }
 
@@ -851,6 +865,7 @@ function triggerDuelEnd(winner) {
 function playVictorySound() {
     if (state.isMuted) return;
     initAudio();
+    if (!state.audioCtx) return;
     const ctx = state.audioCtx;
     const now = ctx.currentTime;
     
@@ -1631,17 +1646,20 @@ function setView(viewName) {
         } else {
             setupView.classList.add('hidden');
             gameView.classList.add('active-view');
+            handleResize(); // Crucial! Recalculate canvas size on mobile now that it is visible
         }
     } else {
         // Desktop: show both side-by-side
         setupView.classList.remove('hidden');
         gameView.classList.remove('active-view');
+        handleResize(); // Sync size on desktop
     }
 }
 
 // Mobile setup start button click handler
 setupStartBtn.addEventListener('click', () => {
     setView('game');
+    handleResize(); // Double-ensure canvas is sized correctly
     if (!state.isPlaying) {
         togglePlayState();
     }
