@@ -2,6 +2,7 @@
 
 Predict the tempo of randomness. A sleek, mathematically sound, interactive rhythm game based on interarrival times sampled from a Weibull distribution. Race against simulated AI strategies in real time!
 
+[Click to play here](https://ahfoss.github.io/weibull-race/)
 Try it on desktop or mobile: **works on all modern web browsers.**
 
 ## Features
