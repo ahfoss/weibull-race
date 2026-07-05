@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weibull Rhythm — Time Prediction Game</title>
+    <meta name="description" content="A sleek, interactive prediction game based on interarrival times sampled from a Weibull distribution.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-wrapper">
+        <header class="app-header">
+            <div class="header-logo">
+                <span class="logo-accent">WEIBULL</span> RHYTHM
+            </div>
+            <div class="header-tagline">Predict the tempo of randomness</div>
+        </header>
+
+        <main class="main-layout">
+            <!-- Sidebar: Parameters, Visuals, and Stats (Setup View) -->
+            <section class="sidebar-panel setup-view" aria-label="Controls and Statistics">
+                <div class="glass-card panel-section">
+                    <h2 class="section-title">Distribution Parameters</h2>
+                    <div class="preset-group">
+                        <button id="presetClustered" class="btn btn-preset active" data-preset="clustered">
+                            <span class="preset-name">Clustered</span>
+                            <span class="preset-desc">k = 0.7 &bull; &lambda; = 1.6s</span>
+                        </button>
+                        <button id="presetMemoryless" class="btn btn-preset" data-preset="memoryless">
+                            <span class="preset-name">Memoryless</span>
+                            <span class="preset-desc">k = 1.0 &bull; &lambda; = 2.0s</span>
+                        </button>
+                        <button id="presetFrailty" class="btn btn-preset" data-preset="frailty">
+                            <span class="preset-name">Frailty</span>
+                            <span class="preset-desc">k = 5.0 &bull; &lambda; = 2.18s</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="glass-card panel-section">
+                    <h2 class="section-title">AI Opponent Strategy</h2>
+                    <div class="strategy-group">
+                        <button id="stratRandom" class="btn btn-strat active" data-strategy="random">Random</button>
+                        <button id="stratInterval" class="btn btn-strat" data-strategy="interval">Interval</button>
+                        <button id="stratBursty" class="btn btn-strat" data-strategy="bursty">Bursty</button>
+                    </div>
+                </div>
+
+                <div class="glass-card panel-section">
+                    <h2 class="section-title">Probability Density Function</h2>
+                    <div class="pdf-container">
+                        <canvas id="pdfCanvas" width="320" height="110"></canvas>
+                    </div>
+                    <div class="distribution-stats">
+                        <div class="stat-mini">
+                            <span class="stat-mini-label">Mean (&mu;):</span>
+                            <span id="theoreticalMean" class="stat-mini-val mono">-</span>
+                        </div>
+                        <div class="stat-mini">
+                            <span class="stat-mini-label">Std Dev (&sigma;):</span>
+                            <span id="theoreticalStd" class="stat-mini-val mono">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card panel-section stats-grid-panel">
+                    <h2 class="section-title">Duel Performance</h2>
+                    <div class="stats-comparison-table">
+                        <div class="stats-header-row">
+                            <span class="stats-hdr-col">Metric</span>
+                            <span class="stats-hdr-col cyan-text">Human</span>
+                            <span class="stats-hdr-col orange-text">AI</span>
+                        </div>
+                        <div class="duel-stat-row">
+                            <span class="duel-stat-label">Hits</span>
+                            <span id="humanSuccessVal" class="duel-stat-number mono cyan-text">0/10</span>
+                            <span id="aiSuccessVal" class="duel-stat-number mono orange-text">0/10</span>
+                        </div>
+                        <div class="duel-stat-row">
+                            <span class="duel-stat-label">Streak</span>
+                            <span id="humanStreakVal" class="duel-stat-number mono cyan-text">0</span>
+                            <span id="aiStreakVal" class="duel-stat-number mono orange-text">0</span>
+                        </div>
+                        <div class="duel-stat-row duel-stat-row-merged">
+                            <span class="duel-stat-label">Elapsed Time</span>
+                            <span id="timeVal" class="duel-stat-number mono text-center">0.00s</span>
+                        </div>
+                        <div class="duel-stat-row duel-stat-row-merged" style="border-bottom: none;">
+                            <span class="duel-stat-label">Best Record</span>
+                            <span id="bestTimeVal" class="duel-stat-number mono text-center">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button id="playBtn" class="btn btn-primary" aria-label="Play Game">
+                        <svg class="icon-play" viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                            <path d="M8 5v14l11-7z"/>
+                        </svg>
+                        <span id="playBtnText">Play</span>
+                    </button>
+                    
+                    <button id="audioBtn" class="btn btn-secondary" aria-label="Toggle Audio">
+                        <svg id="audioIcon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                        </svg>
+                        <span id="audioBtnText">Mute</span>
+                    </button>
+                    
+                    <button id="resetBtn" class="btn btn-outline" aria-label="Reset Statistics">
+                        Reset Stats
+                    </button>
+                </div>
+
+                <div class="mobile-only-start">
+                    <button id="setupStartBtn" class="btn btn-primary btn-large" style="width: 100%; margin-top: 12px; padding: 14px; border-radius: 10px; font-weight: 700;">
+                        Start Duel
+                    </button>
+                </div>
+            </section>
+
+            <!-- Game View Area -->
+            <section class="game-panel game-view" aria-label="Game Visualizer">
+                <div class="mobile-hud">
+                    <button id="backToSetupBtn" class="btn btn-icon-back" aria-label="Back to Settings">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+                        </svg>
+                    </button>
+                    <div class="hud-stat">
+                        <span class="hud-label">HUMAN</span>
+                        <span id="hudHumanHits" class="hud-val cyan-text">0/10</span>
+                    </div>
+                    <div class="hud-stat">
+                        <span class="hud-label">AI</span>
+                        <span id="hudAiHits" class="hud-val orange-text">0/10</span>
+                    </div>
+                    <div class="hud-stat">
+                        <span class="hud-label">TIME</span>
+                        <span id="hudTimeVal" class="hud-val">0.00s</span>
+                    </div>
+                </div>
+
+                <div class="canvas-wrapper glass-card">
+                    <canvas id="gameCanvas"></canvas>
+                    
+                    <div id="startPrompt" class="overlay-prompt">
+                        <div class="prompt-content">
+                            <div class="prompt-icon">DUEL</div>
+                            <h3>Weibull Rhythm Duel</h3>
+                            <p>Race the AI to 10 successful hits! Tapping the screen (or Spacebar on desktop) predicts on the top track. The AI will predict on the bottom track.</p>
+                            <button id="promptPlayBtn" class="btn btn-primary">Start Duel</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="game-legend">
+                    <div class="legend-item">
+                        <span class="legend-dot line-dot"></span>
+                        <span class="legend-text">Actual Line (Weibull Sample)</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-dot pred-dot"></span>
+                        <span class="legend-text">Your Prediction (Tap / Space)</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-dot green-dot"></span>
+                        <span class="legend-text">Hit (Error &lt; 0.35s)</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-dot red-dot"></span>
+                        <span class="legend-text">Miss (Error &ge; 0.35s)</span>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>
